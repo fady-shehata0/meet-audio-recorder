@@ -1,0 +1,54 @@
+{
+  "name": "meet-audio-recorder",
+  "version": "1.0.0",
+  "description": "تطبيق سطح مكتب لإنشاء تسجيل صوتي لاجتماعات Google Meet ورفعه تلقائيًا إلى Google Drive، مع دعم كامل لإمكانية الوصول وقارئات الشاشة.",
+  "main": "src/main/main.js",
+  "author": "Your Name",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "start:dev": "cross-env ELECTRON_ENABLE_LOGGING=1 electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac",
+    "dist:linux": "electron-builder --linux"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0",
+    "puppeteer": "^23.0.0",
+    "puppeteer-stream": "^3.0.23"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "build": {
+    "appId": "com.example.meet-audio-recorder",
+    "productName": "Meet Audio Recorder",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.utilities"
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility"
+    }
+  }
+}

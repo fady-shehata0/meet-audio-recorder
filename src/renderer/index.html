@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- سياسة أمان المحتوى: نسمح فقط بالملفات المحلية للبرنامج والسكربتات. -->
+  <meta
+    http-equiv="Content-Security-Policy"
+    content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:"
+  />
+  <title>مسجّل صوت Google Meet</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- رابط تجاوز سريع للمحتوى الرئيسي (مهم لمستخدمي قارئات الشاشة ولوحة المفاتيح). -->
+  <a class="skip-link" href="#main-content">تخطَّ إلى المحتوى الرئيسي</a>
+
+  <header role="banner" class="app-header">
+    <h1>مسجّل صوت اجتماعات Google Meet</h1>
+    <p id="app-desc" class="app-desc">
+      يساعدك هذا التطبيق على الانضمام إلى اجتماع Google Meet وتسجيل صوته فقط،
+      ثم رفع الملف تلقائيًا إلى Google Drive.
+    </p>
+  </header>
+
+  <main id="main-content" role="main" aria-describedby="app-desc" tabindex="-1">
+    <!-- ===================== نموذج الإعداد ===================== -->
+    <form id="record-form" novalidate aria-labelledby="form-heading">
+      <h2 id="form-heading">إعداد التسجيل</h2>
+
+      <!-- رابط الاجتماع -->
+      <div class="field">
+        <label for="meet-url">رابط اجتماع Google Meet <span class="required" aria-hidden="true">*</span></label>
+        <input
+          id="meet-url"
+          name="meetUrl"
+          type="url"
+          inputmode="url"
+          autocomplete="off"
+          spellcheck="false"
+          placeholder="https://meet.google.com/abc-defg-hij"
+          aria-required="true"
+          aria-describedby="meet-url-help meet-url-error"
+          required
+        />
+        <p id="meet-url-help" class="hint">
+          ألصق رابط الاجتماع الكامل الذي يبدأ بـ <span dir="ltr">https://meet.google.com/</span>
+        </p>
+        <p id="meet-url-error" class="field-error" role="alert" aria-live="assertive" hidden></p>
+      </div>
+
+      <!-- اسم المشارك -->
+      <div class="field">
+        <label for="display-name">الاسم الظاهر في الاجتماع</label>
+        <input
+          id="display-name"
+          name="displayName"
+          type="text"
+          autocomplete="name"
+          aria-describedby="display-name-help"
+          value="مسجّل الاجتماع"
+        />
+        <p id="display-name-help" class="hint">الاسم الذي سيظهر للمشاركين عند دخول المسجّل.</p>
+      </div>
+
+      <!-- طريقة البدء -->
+      <fieldset class="group" aria-describedby="mode-help">
+        <legend>طريقة بدء التسجيل</legend>
+        <p id="mode-help" class="hint">اختر التسجيل الفوري أو جدولة وقت البدء والانتهاء.</p>
+
+        <div class="radio-row">
+          <input type="radio" id="mode-now" name="mode" value="now" checked />
+          <label for="mode-now">بدء التسجيل فورًا</label>
+        </div>
+
+        <div class="radio-row">
+          <input type="radio" id="mode-schedule" name="mode" value="schedule" />
+          <label for="mode-schedule">جدولة وقت البدء والانتهاء</label>
+        </div>
+      </fieldset>
+
+      <!-- حقول الجدولة (تُخفى وتُعطَّل عند اختيار التسجيل الفوري) -->
+      <div id="schedule-fields" class="schedule-fields" hidden>
+        <div class="field">
+          <label for="start-time">وقت البدء</label>
+          <input
+            id="start-time"
+            name="startTime"
+            type="datetime-local"
+            aria-describedby="start-time-help"
+          />
+          <p id="start-time-help" class="hint">وقت بدء التسجيل تلقائيًا.</p>
+        </div>
+
+        <div class="field">
+          <label for="end-time">وقت الانتهاء (اختياري)</label>
+          <input
+            id="end-time"
+            name="endTime"
+            type="datetime-local"
+            aria-describedby="end-time-help"
+          />
+          <p id="end-time-help" class="hint">
+            عند تحديده سيتم إيقاف التسجيل تلقائيًا في هذا الوقت.
+          </p>
+        </div>
+      </div>
+
+      <!-- خيارات إضافية -->
+      <fieldset class="group" aria-describedby="options-help">
+        <legend>خيارات التسجيل</legend>
+        <p id="options-help" class="hint">إعدادات تتحكم في طريقة التشغيل والرفع.</p>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="headless" name="headless" aria-describedby="headless-help" />
+          <label for="headless">تشغيل المتصفح في الخلفية (بدون واجهة)</label>
+        </div>
+        <p id="headless-help" class="hint">
+          عند التفعيل لن تظهر نافذة المتصفح أثناء التسجيل.
+        </p>
+
+        <div class="checkbox-row">
+          <input type="checkbox" id="auto-upload" name="autoUpload" checked aria-describedby="auto-upload-help" />
+          <label for="auto-upload">رفع التسجيل تلقائيًا إلى Google Drive</label>
+        </div>
+        <p id="auto-upload-help" class="hint">
+          يتطلّب ذلك الاتصال بحساب Google أولًا.
+        </p>
+      </fieldset>
+
+      <!-- مجلد Google Drive الهدف -->
+      <div class="field">
+        <label for="drive-folder">معرّف مجلد Google Drive (اختياري)</label>
+        <input
+          id="drive-folder"
+          name="folderId"
+          type="text"
+          autocomplete="off"
+          spellcheck="false"
+          aria-describedby="drive-folder-help"
+          placeholder="اتركه فارغًا للرفع إلى مساحتي الرئيسية"
+        />
+        <p id="drive-folder-help" class="hint">
+          يمكنك لصق معرّف المجلد من رابط المجلد في Drive.
+        </p>
+      </div>
+
+      <!-- مجلد حفظ التسجيلات -->
+      <div class="field">
+        <label for="output-folder">مجلد حفظ التسجيلات</label>
+        <div class="inline-controls">
+          <input
+            id="output-folder"
+            name="outputDir"
+            type="text"
+            readonly
+            aria-describedby="output-folder-help"
+          />
+          <button type="button" id="choose-folder-btn" class="secondary">
+            اختيار المجلد
+          </button>
+        </div>
+        <p id="output-folder-help" class="hint">
+          المكان على جهازك الذي ستُحفظ فيه ملفات التسجيل.
+        </p>
+      </div>
+
+      <!-- أزرار التحكم الرئيسية -->
+      <div class="actions">
+        <button type="submit" id="start-btn" class="primary">
+          ابدأ التسجيل
+        </button>
+        <button type="button" id="stop-btn" class="danger" disabled>
+          أوقف التسجيل
+        </button>
+      </div>
+    </form>
+
+    <!-- ===================== أزرار Google Drive ===================== -->
+    <section class="card" aria-labelledby="drive-heading">
+      <h2 id="drive-heading">حساب Google Drive</h2>
+      <div class="actions">
+        <button type="button" id="connect-drive-btn" class="secondary">
+          الاتصال بحساب Google
+        </button>
+        <button type="button" id="import-credentials-btn" class="secondary">
+          استيراد ملف بيانات الاعتماد
+        </button>
+        <button type="button" id="open-recordings-btn" class="secondary">
+          فتح مجلد التسجيلات
+        </button>
+      </div>
+    </section>
+
+    <!-- ===================== حالة التطبيق ===================== -->
+    <section class="card" aria-labelledby="status-heading">
+      <h2 id="status-heading">حالة التطبيق</h2>
+
+      <!-- منطقة مباشرة (Live Region) تُعلَن بلطف عند تغيّر الحالة. -->
+      <p
+        id="status-region"
+        class="status-box"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        جاهز للبدء.
+      </p>
+
+      <!-- منطقة الأخطاء: تُعلَن فورًا وتقاطع قارئ الشاشة. -->
+      <p
+        id="error-region"
+        class="error-box"
+        role="alert"
+        aria-live="assertive"
+        aria-atomic="true"
+        hidden
+      ></p>
+    </section>
+
+    <!-- ===================== سجل الأحداث ===================== -->
+    <section class="card" aria-labelledby="log-heading">
+      <h2 id="log-heading">سجل الأحداث</h2>
+      <ul
+        id="log-region"
+        class="log-list"
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label="سجل الأحداث التفصيلي"
+      ></ul>
+    </section>
+  </main>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

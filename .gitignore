@@ -1,0 +1,20 @@
+# الاعتماديات
+node_modules/
+
+# مخرجات البناء
+dist/
+out/
+build/
+
+# الملفات الشخصية والحساسة (لا ترفعها إلى المستودع إطلاقًا)
+credentials.json
+token.json
+.env
+
+# التسجيلات المحلية
+recordings/
+
+# ملفات النظام والمحرر
+.DS_Store
+Thumbs.db
+*.log

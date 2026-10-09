@@ -1,0 +1,326 @@
+/* ===========================================================================
+   styles.css
+   تنسيقات الواجهة مع التركيز على إمكانية الوصول:
+   - تباين لوني عالٍ ومطابق لمعايير WCAG AA.
+   - مؤشّر تركيز واضح (focus-visible) للتنقل بلوحة المفاتيح.
+   - أحجام نقر كبيرة (44px كحد أدنى).
+   - احترام تفضيل تقليل الحركة (prefers-reduced-motion).
+   =========================================================================== */
+
+:root {
+  --bg: #f5f6fa;
+  --surface: #ffffff;
+  --text: #1b1b1f;
+  --muted: #4a4a55;
+  --border: #6b6b76;
+  --primary: #0b5cff;
+  --primary-text: #ffffff;
+  --danger: #b00020;
+  --danger-text: #ffffff;
+  --success-bg: #e6f4ea;
+  --success-text: #0b5c1a;
+  --error-bg: #fdecea;
+  --error-text: #8a0016;
+  --focus: #ff8c00;
+  --radius: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  padding: 20px;
+}
+
+/* رابط التجاوز: مخفي بصريًا حتى يُركّز عليه بلوحة المفاتيح. */
+.skip-link {
+  position: absolute;
+  top: -60px;
+  right: 12px;
+  background: var(--primary);
+  color: var(--primary-text);
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  z-index: 1000;
+  transition: top 0.15s ease-in-out;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+.app-header h1 {
+  font-size: 1.6rem;
+  margin: 0 0 8px;
+}
+
+.app-desc {
+  color: var(--muted);
+  margin: 0 0 20px;
+  max-width: 70ch;
+}
+
+main:focus {
+  outline: none;
+}
+
+/* البطاقات والأقسام */
+form,
+.card {
+  background: var(--surface);
+  border: 1px solid #d9d9e0;
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-top: 0;
+}
+
+/* الحقول */
+.field {
+  margin-bottom: 18px;
+}
+
+label,
+legend {
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+input[type="text"],
+input[type="url"],
+input[type="datetime-local"] {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 1rem;
+  color: var(--text);
+  background: #ffffff;
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+}
+
+input[readonly] {
+  background: #eef0f4;
+}
+
+/* مؤشّر التركيز الواضح لجميع العناصر التفاعلية. */
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* الحقول المطلوبة */
+.required {
+  color: var(--danger);
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 4px 0 0;
+}
+
+.field-error {
+  color: var(--error-text);
+  background: var(--error-bg);
+  border: 1px solid var(--error-text);
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* المجموعات (fieldset) */
+.group {
+  border: 1px solid #d9d9e0;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 0 0 18px;
+}
+
+.group legend {
+  font-size: 1.05rem;
+  padding: 0 6px;
+}
+
+.radio-row,
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+
+/* تكبير مربعات الاختيار وأزرار الراديو لسهولة النقر. */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+
+.radio-row label,
+.checkbox-row label {
+  font-weight: 400;
+  margin: 0;
+}
+
+.schedule-fields {
+  border-inline-start: 4px solid var(--primary);
+  padding-inline-start: 16px;
+  margin-bottom: 18px;
+}
+
+/* أزرار */
+button {
+  font-size: 1rem;
+  font-family: inherit;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.primary {
+  background: var(--primary);
+  color: var(--primary-text);
+}
+
+.primary:hover:not(:disabled) {
+  background: #0847c4;
+}
+
+.danger {
+  background: var(--danger);
+  color: var(--danger-text);
+}
+
+.danger:hover:not(:disabled) {
+  background: #8a0018;
+}
+
+.secondary {
+  background: #ffffff;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.secondary:hover:not(:disabled) {
+  background: #eef0f4;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.inline-controls {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.inline-controls input {
+  flex: 1 1 auto;
+}
+
+/* الحالة والأخطاء */
+.status-box {
+  background: var(--success-bg);
+  color: var(--success-text);
+  border: 1px solid #b7dfc2;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.error-box {
+  background: var(--error-bg);
+  color: var(--error-text);
+  border: 1px solid #f2b8b5;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  margin: 10px 0 0;
+  font-weight: 600;
+}
+
+/* السجل */
+.log-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  border: 1px solid #d9d9e0;
+  border-radius: var(--radius);
+}
+
+.log-list li {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eceef2;
+  font-size: 0.92rem;
+}
+
+.log-list li:last-child {
+  border-bottom: none;
+}
+
+.log-list li.warn {
+  background: #fff7e6;
+  color: #7a4b00;
+}
+
+.log-list li.error {
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+
+.log-time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* احترام تفضيل تقليل الحركة. */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* دعم التباين العالي في أنظمة التشغيل. */
+@media (prefers-contrast: more) {
+  input,
+  button,
+  .card,
+  form {
+    border-width: 2px;
+  }
+}
