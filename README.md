@@ -163,6 +163,30 @@ meeting/
 
 ---
 
+## 🏗️ البناء والإصدارات الآلية
+
+المشروع مهيّأ بـ **GitHub Actions**:
+
+- **CI** (`.github/workflows/ci.yml`): يفحص صياغة جميع ملفات JavaScript على
+  إصدارات Node‏ (18 و20 و22) عند كل دفع أو طلب دمج على الفرع `main`.
+- **Build & Release** (`.github/workflows/release.yml`): يبني مثبّتات التطبيق
+  لـ **Windows** و**macOS** و**Linux** تلقائيًا عند دفع وسم إصدار يبدأ بحرف `v`،
+  وينشرها في صفحة [الإصدارات](https://github.com/fady-shehata0/meet-audio-recorder/releases).
+
+لإنشاء إصدار جديد:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+> ملاحظة: التطبيق وقت التشغيل يعتمد على متصفح **Chrome** المثبّت على الجهاز
+> (أو يمكن تحديد مساره عبر المتغيّر `PUPPETEER_EXECUTABLE_PATH`).
+
+---
+
 ## 📄 الترخيص
 
-هذا المشروع متاح تحت رخصة **MIT**.
+هذا المشروع متاح تحت رخصة **MIT** — انظر ملف [LICENSE](LICENSE).
+لسجل التغييرات انظر [CHANGELOG.md](CHANGELOG.md).
+

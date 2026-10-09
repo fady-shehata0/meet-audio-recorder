@@ -3,8 +3,16 @@
   "version": "1.0.0",
   "description": "تطبيق سطح مكتب لإنشاء تسجيل صوتي لاجتماعات Google Meet ورفعه تلقائيًا إلى Google Drive، مع دعم كامل لإمكانية الوصول وقارئات الشاشة.",
   "main": "src/main/main.js",
-  "author": "Your Name",
+  "author": "fady-shehata0",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fady-shehata0/meet-audio-recorder.git"
+  },
+  "homepage": "https://github.com/fady-shehata0/meet-audio-recorder#readme",
+  "bugs": {
+    "url": "https://github.com/fady-shehata0/meet-audio-recorder/issues"
+  },
   "scripts": {
     "start": "electron .",
     "start:dev": "cross-env ELECTRON_ENABLE_LOGGING=1 electron .",
@@ -32,6 +40,13 @@
     "files": [
       "src/**/*",
       "package.json"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "fady-shehata0",
+        "repo": "meet-audio-recorder"
+      }
     ],
     "win": {
       "target": [

@@ -1,0 +1,61 @@
+# بناء التطبيق ونشره تلقائيًا على GitHub Releases.
+# يُشغَّل عند دفع وسم إصدار يبدأ بحرف "v" (مثل v1.0.0).
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+# نحتاج صلاحية الكتابة لإنشاء الإصدار ورفع الملفات.
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: بناء (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+      - name: جلب الكود
+        uses: actions/checkout@v4
+
+      - name: إعداد Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # نتخطّى تنزيل Chromium وقت البناء لتسريع العملية؛ التطبيق يستخدم
+      # متصفح Chrome المثبّت على جهاز المستخدم وقت التشغيل.
+      - name: تثبيت الاعتماديات
+        env:
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+        run: npm install
+
+      - name: البناء والنشر
+        env:
+          # يوفّره GitHub تلقائيًا ولديه صلاحية الكتابة (contents: write).
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # تعطيل توقيع الكود تلقائيًا (البناءات غير موقّعة بطبيعتها في CI).
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          PUPPETEER_SKIP_DOWNLOAD: 'true'
+        run: npx electron-builder --publish always
+
+      # خطوة احتياطية: رفع الملفات كـ Artifacts حتى لو فشل النشر.
+      - name: رفع الملفات كـ Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.os }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.zip
+          if-no-files-found: ignore
+          retention-days: 14

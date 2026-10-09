@@ -74,18 +74,33 @@ class MeetRecorder extends EventEmitter {
 
   /**
    * تحديد مسار متصفح Chrome/Chromium.
-   * الأولوية لمتغير البيئة ثم Chromium المُرفق مع puppeteer.
+   * الأولوية لمتغير البيئة ثم Chromium المُرفق مع puppeteer، مع التحقّق
+   * من وجود الملف فعليًا (مهم في النسخ المُحزَّمة حيث قد لا يتوفّر).
+   * عند عدم توفّر أي مسار نُعيد undefined ليختار puppeteer-stream الافتراضي.
    */
   _resolveExecutablePath() {
+    const candidates = [];
+
     if (process.env.PUPPETEER_EXECUTABLE_PATH) {
-      return process.env.PUPPETEER_EXECUTABLE_PATH;
+      candidates.push(process.env.PUPPETEER_EXECUTABLE_PATH);
     }
     try {
       // eslint-disable-next-line global-require
-      return require('puppeteer').executablePath();
+      candidates.push(require('puppeteer').executablePath());
     } catch (err) {
-      return undefined; // نترك puppeteer-stream يختار الافتراضي.
+      // نتجاهل: قد لا تكون puppeteer متاحة للاستيراد.
     }
+
+    for (const candidate of candidates) {
+      try {
+        if (candidate && fs.existsSync(candidate)) {
+          return candidate;
+        }
+      } catch (err) {
+        // نتجاهل هذا المرشّح.
+      }
+    }
+    return undefined; // ترك puppeteer-stream يكتشف المتصفح الافتراضي.
   }
 
   // -------------------------------------------------------------------------
