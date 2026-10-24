@@ -1,7 +1,7 @@
 {
-  "name": "meet-audio-recorder",
-  "version": "1.0.0",
-  "description": "تطبيق سطح مكتب لإنشاء تسجيل صوتي لاجتماعات Google Meet ورفعه تلقائيًا إلى Google Drive، مع دعم كامل لإمكانية الوصول وقارئات الشاشة.",
+  "name": "meet-audio-recorder-pro",
+  "version": "1.1.0",
+  "description": "Professional desktop app to join Google Meet, record audio, auto-upload to Google Drive, and export a final Windows EXE installer.",
   "main": "src/main/main.js",
   "author": "fady-shehata0",
   "license": "MIT",
@@ -18,8 +18,10 @@
     "start:dev": "cross-env ELECTRON_ENABLE_LOGGING=1 electron .",
     "dist": "electron-builder",
     "dist:win": "electron-builder --win",
+    "dist:win:portable": "electron-builder --win portable",
     "dist:mac": "electron-builder --mac",
-    "dist:linux": "electron-builder --linux"
+    "dist:linux": "electron-builder --linux",
+    "release:win": "electron-builder --win --publish always"
   },
   "dependencies": {
     "googleapis": "^144.0.0",
@@ -35,14 +37,17 @@
     "node": ">=18.0.0"
   },
   "build": {
-    "appId": "com.example.meet-audio-recorder",
-    "productName": "Meet Audio Recorder",
+    "appId": "com.fady.meetrecorder.pro",
+    "productName": "Meet Recorder Pro",
+    "artifactName": "MeetRecorder-Pro-${version}-${platform}-${arch}.${ext}",
     "directories": {
       "buildResources": "build"
     },
     "files": [
       "src/**/*",
-      "package.json"
+      "package.json",
+      "LICENSE",
+      "build/**/*"
     ],
     "publish": [
       {
@@ -54,9 +59,33 @@
     ],
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "build/icon.png"
+      "icon": "build/icon.png",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "installerIcon": "build/icon.png",
+      "uninstallerIcon": "build/icon.png",
+      "shortcutName": "Meet Recorder Pro"
+    },
+    "portable": {
+      "artifactName": "MeetRecorder-Pro-${version}-portable.exe"
     },
     "mac": {
       "target": [

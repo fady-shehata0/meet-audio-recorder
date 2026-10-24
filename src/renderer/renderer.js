@@ -1,18 +1,5 @@
 'use strict';
 
-/**
- * renderer.js
- * ---------------------------------------------------------------------------
- * منطق الواجهة (Renderer Process).
- *
- * يتواصل مع عملية Main عبر واجهة window.api الآمنة (انظر preload.js)،
- * ويحدّث مناطق aria-live لإعلان التغيّرات لمستخدمي قارئات الشاشة.
- * ---------------------------------------------------------------------------
- */
-
-// ---------------------------------------------------------------------------
-// المراجع إلى عناصر الواجهة
-// ---------------------------------------------------------------------------
 const els = {
   form: document.getElementById('record-form'),
   meetUrl: document.getElementById('meet-url'),
@@ -33,21 +20,18 @@ const els = {
   connectDriveBtn: document.getElementById('connect-drive-btn'),
   importCredentialsBtn: document.getElementById('import-credentials-btn'),
   openRecordingsBtn: document.getElementById('open-recordings-btn'),
+  openLatestBtn: document.getElementById('open-latest-btn'),
   statusRegion: document.getElementById('status-region'),
   errorRegion: document.getElementById('error-region'),
   logRegion: document.getElementById('log-region'),
+  recentRecordings: document.getElementById('recent-recordings'),
+  version: document.getElementById('app-version'),
 };
 
-// ---------------------------------------------------------------------------
-// أدوات مساعدة
-// ---------------------------------------------------------------------------
-
-/** تحديث منطقة الحالة (تُعلَن بلطف من قارئ الشاشة). */
 function setStatus(message) {
   els.statusRegion.textContent = message;
 }
 
-/** إظهار/إخفاء منطقة الخطأ (تُعلَن فورًا). */
 function setError(message) {
   if (message) {
     els.errorRegion.textContent = message;
@@ -58,14 +42,13 @@ function setError(message) {
   }
 }
 
-/** إضافة سطر إلى السجل. */
 function addLog(message, level = 'info') {
   const li = document.createElement('li');
   li.className = level;
 
   const time = document.createElement('span');
   time.className = 'log-time';
-  time.textContent = new Date().toLocaleTimeString('ar');
+  time.textContent = new Date().toLocaleTimeString('en');
 
   const text = document.createElement('span');
   text.textContent = ' ' + message;
@@ -74,14 +57,12 @@ function addLog(message, level = 'info') {
   li.appendChild(text);
   els.logRegion.appendChild(li);
 
-  // الحفاظ على حجم السجل معقولًا.
   while (els.logRegion.children.length > 300) {
     els.logRegion.removeChild(els.logRegion.firstChild);
   }
   els.logRegion.scrollTop = els.logRegion.scrollHeight;
 }
 
-/** إظهار رسالة خطأ في حقل رابط الاجتماع وإدارته لقارئ الشاشة. */
 function setUrlError(message) {
   if (message) {
     els.meetUrlError.textContent = message;
@@ -94,69 +75,59 @@ function setUrlError(message) {
   }
 }
 
-/** تغيير حالة الأزرار أثناء التشغيل. */
 function setBusy(isBusy) {
   els.form.setAttribute('aria-busy', isBusy ? 'true' : 'false');
 }
 
-/** ضبط أزرار البدء/الإيقاف حسب الحالة. */
 function setButtonsForState(state) {
   const isRunning = state === 'recording' || state === 'scheduled';
   els.stopBtn.disabled = !isRunning;
   els.startBtn.disabled = isRunning;
 }
 
-// ---------------------------------------------------------------------------
-// التحقق من المدخلات
-// ---------------------------------------------------------------------------
-
-/** هل الرابط يخص Google Meet؟ */
 function isValidMeetUrl(value) {
   try {
     const url = new URL(value);
-    return (
-      url.protocol === 'https:' &&
-      (url.hostname === 'meet.google.com' || url.hostname.endsWith('.meet.google.com'))
-    );
+    return url.protocol === 'https:' && (url.hostname === 'meet.google.com' || url.hostname.endsWith('.meet.google.com'));
   } catch (err) {
     return false;
   }
 }
 
-/** التحقق من النموذج كاملًا. @returns {boolean} */
 function validateForm() {
   setUrlError('');
 
   if (!els.meetUrl.value.trim()) {
-    setUrlError('الرجاء إدخال رابط اجتماع Google Meet.');
+    setUrlError('Please enter the Google Meet link.');
     els.meetUrl.focus();
     return false;
   }
+
   if (!isValidMeetUrl(els.meetUrl.value.trim())) {
-    setUrlError(
-      'الرابط غير صالح. يجب أن يكون رابط Google Meet يبدأ بـ https://meet.google.com/'
-    );
+    setUrlError('Invalid link. It must be a Google Meet URL starting with https://meet.google.com/');
     els.meetUrl.focus();
     return false;
   }
 
   if (els.modeSchedule.checked) {
     if (!els.startTime.value) {
-      setStatus('الرجاء تحديد وقت البدء للتسجيل المجدول.');
-      setError('وقت البدء مطلوب في وضع الجدولة.');
+      setStatus('Please select a start time for the scheduled recording.');
+      setError('Start time is required when scheduling.');
       els.startTime.focus();
       return false;
     }
+
     const start = new Date(els.startTime.value);
     if (Number.isNaN(start.getTime()) || start.getTime() <= Date.now()) {
-      setError('وقت البدء يجب أن يكون في المستقبل.');
+      setError('Start time must be in the future.');
       els.startTime.focus();
       return false;
     }
+
     if (els.endTime.value) {
       const end = new Date(els.endTime.value);
       if (Number.isNaN(end.getTime()) || end.getTime() <= start.getTime()) {
-        setError('وقت الانتهاء يجب أن يكون بعد وقت البدء.');
+        setError('End time must be later than the start time.');
         els.endTime.focus();
         return false;
       }
@@ -164,7 +135,7 @@ function validateForm() {
   } else if (els.endTime.value) {
     const end = new Date(els.endTime.value);
     if (Number.isNaN(end.getTime()) || end.getTime() <= Date.now()) {
-      setError('وقت الانتهاء (للتسجيل الفوري) يجب أن يكون في المستقبل.');
+      setError('The end time for an immediate recording must be in the future.');
       els.endTime.focus();
       return false;
     }
@@ -174,32 +145,95 @@ function validateForm() {
   return true;
 }
 
-// ---------------------------------------------------------------------------
-// ربط الأحداث
-// ---------------------------------------------------------------------------
-
-/** إظهار/إخفاء حقول الجدولة حسب الاختيار. */
 function updateScheduleVisibility() {
   const isSchedule = els.modeSchedule.checked;
   els.scheduleFields.hidden = !isSchedule;
-  // تعطيل الحقول المخفية لمنع الوصول إليها بلوحة المفاتيح.
   els.startTime.disabled = !isSchedule;
   els.endTime.disabled = !isSchedule;
+}
+
+function saveSettings() {
+  const settings = {
+    meetUrl: els.meetUrl.value.trim(),
+    displayName: els.displayName.value.trim(),
+    mode: els.modeSchedule.checked ? 'schedule' : 'now',
+    startTime: els.startTime.value,
+    endTime: els.endTime.value,
+    headless: els.headless.checked,
+    autoUpload: els.autoUpload.checked,
+    driveFolder: els.driveFolder.value.trim(),
+    outputFolder: els.outputFolder.value.trim(),
+  };
+  localStorage.setItem('meet-recorder-settings', JSON.stringify(settings));
+}
+
+function loadSettings() {
+  try {
+    const raw = localStorage.getItem('meet-recorder-settings');
+    if (!raw) return;
+    const data = JSON.parse(raw);
+
+    if (data.meetUrl) els.meetUrl.value = data.meetUrl;
+    if (data.displayName) els.displayName.value = data.displayName;
+    if (data.mode === 'schedule') els.modeSchedule.checked = true;
+    else els.modeNow.checked = true;
+    if (data.startTime) els.startTime.value = data.startTime;
+    if (data.endTime) els.endTime.value = data.endTime;
+    els.headless.checked = !!data.headless;
+    els.autoUpload.checked = data.autoUpload !== false;
+    if (data.driveFolder) els.driveFolder.value = data.driveFolder;
+    if (data.outputFolder) els.outputFolder.value = data.outputFolder;
+  } catch (err) {
+    addLog('Could not load saved settings.', 'warn');
+  }
+
+  updateScheduleVisibility();
+}
+
+function renderRecentRecordings(entries) {
+  els.recentRecordings.innerHTML = '';
+
+  if (!entries || entries.length === 0) {
+    const li = document.createElement('li');
+    li.textContent = 'No recordings yet.';
+    li.className = 'empty';
+    els.recentRecordings.appendChild(li);
+    return;
+  }
+
+  for (const entry of entries.slice(0, 5)) {
+    const li = document.createElement('li');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'recent-link';
+    button.textContent = entry.name || 'Recording';
+    button.addEventListener('click', async () => {
+      try {
+        const result = await window.api.openLatestRecording();
+        if (!result || !result.ok) {
+          setError(result && result.error ? result.error : 'Unable to open recording.');
+        } else {
+          setStatus('Opened recording.');
+        }
+      } catch (err) {
+        setError('Unable to open recording: ' + err.message);
+      }
+    });
+    li.appendChild(button);
+    els.recentRecordings.appendChild(li);
+  }
 }
 
 els.modeNow.addEventListener('change', updateScheduleVisibility);
 els.modeSchedule.addEventListener('change', updateScheduleVisibility);
 
-// إرسال النموذج: بدء أو جدولة التسجيل.
 els.form.addEventListener('submit', async (event) => {
   event.preventDefault();
-  if (!validateForm()) {
-    return;
-  }
+  if (!validateForm()) return;
 
   const config = {
     meetUrl: els.meetUrl.value.trim(),
-    displayName: els.displayName.value.trim() || 'مسجّل الاجتماع',
+    displayName: els.displayName.value.trim() || 'Meet Recorder Pro',
     mode: els.modeSchedule.checked ? 'schedule' : 'now',
     startTime: els.startTime.value || null,
     endTime: els.endTime.value || null,
@@ -209,136 +243,135 @@ els.form.addEventListener('submit', async (event) => {
     outputDir: els.outputFolder.value.trim() || null,
   };
 
+  saveSettings();
   setError('');
   setBusy(true);
-  setStatus('جاري تجهيز التسجيل...');
+  setStatus('Preparing recording...');
 
   try {
     const result = await window.api.startRecording(config);
     if (!result || !result.ok) {
-      setError((result && result.error) || 'تعذّر بدء التسجيل.');
-      setStatus('فشل بدء التسجيل.');
+      setError((result && result.error) || 'Unable to start recording.');
+      setStatus('Recording failed.');
       setButtonsForState('idle');
     } else if (result.scheduled) {
-      setStatus('تمت جدولة التسجيل بنجاح.');
+      setStatus('Recording scheduled successfully.');
       setButtonsForState('scheduled');
     } else {
-      setStatus('بدأ التسجيل الآن.');
+      setStatus('Recording started.');
       setButtonsForState('recording');
     }
   } catch (err) {
-    setError('حدث خطأ غير متوقع: ' + err.message);
-    setStatus('فشل بدء التسجيل.');
+    setError('Unexpected error: ' + err.message);
+    setStatus('Recording failed.');
     setButtonsForState('idle');
   } finally {
     setBusy(false);
   }
 });
 
-// إيقاف التسجيل.
 els.stopBtn.addEventListener('click', async () => {
-  setStatus('جاري إيقاف التسجيل...');
+  setStatus('Stopping recording...');
   els.stopBtn.disabled = true;
+
   try {
     const result = await window.api.stopRecording();
     if (!result || !result.ok) {
-      setError((result && result.error) || 'تعذّر إيقاف التسجيل.');
+      setError((result && result.error) || 'Unable to stop recording.');
     } else {
-      setStatus('تم إيقاف التسجيل.');
+      setStatus('Recording stopped.');
     }
   } catch (err) {
-    setError('تعذّر إيقاف التسجيل: ' + err.message);
+    setError('Unable to stop recording: ' + err.message);
   } finally {
     setButtonsForState('idle');
   }
 });
 
-// الاتصال بـ Google Drive.
 els.connectDriveBtn.addEventListener('click', async () => {
-  setStatus('جاري الاتصال بـ Google Drive...');
+  setStatus('Connecting to Google Drive...');
   els.connectDriveBtn.disabled = true;
+
   try {
     const result = await window.api.connectDrive();
     if (!result || !result.ok) {
-      setError((result && result.error) || 'فشل الاتصال بـ Google Drive.');
+      setError((result && result.error) || 'Unable to connect to Google Drive.');
     } else {
-      setStatus('تم الاتصال بـ Google Drive بنجاح.');
+      setStatus('Connected to Google Drive successfully.');
     }
   } catch (err) {
-    setError('فشل الاتصال: ' + err.message);
+    setError('Connection failed: ' + err.message);
   } finally {
     els.connectDriveBtn.disabled = false;
   }
 });
 
-// استيراد ملف credentials.json.
 els.importCredentialsBtn.addEventListener('click', async () => {
   try {
     const result = await window.api.pickCredentials();
     if (result && result.canceled) {
-      setStatus('تم إلغاء استيراد ملف الاعتماد.');
+      setStatus('Credential import canceled.');
     } else if (result && result.ok) {
-      setStatus('تم استيراد ملف بيانات الاعتماد بنجاح.');
+      setStatus('Credentials imported successfully.');
     } else {
-      setError((result && result.error) || 'تعذّر استيراد الملف.');
+      setError((result && result.error) || 'Unable to import credentials.');
     }
   } catch (err) {
-    setError('تعذّر استيراد الملف: ' + err.message);
+    setError('Unable to import credentials: ' + err.message);
   }
 });
 
-// اختيار مجلد الحفظ.
 els.chooseFolderBtn.addEventListener('click', async () => {
   try {
     const result = await window.api.chooseOutputFolder();
     if (result && result.ok && result.folder) {
       els.outputFolder.value = result.folder;
-      setStatus('تم اختيار مجلد الحفظ: ' + result.folder);
+      setStatus('Recording folder selected: ' + result.folder);
+      saveSettings();
     } else if (result && result.canceled) {
-      setStatus('تم إلغاء اختيار المجلد.');
+      setStatus('Folder selection canceled.');
     }
   } catch (err) {
-    setError('تعذّر اختيار المجلد: ' + err.message);
+    setError('Unable to select the folder: ' + err.message);
   }
 });
 
-// فتح مجلد التسجيلات.
 els.openRecordingsBtn.addEventListener('click', async () => {
   try {
     await window.api.openRecordingsFolder();
   } catch (err) {
-    setError('تعذّر فتح المجلد: ' + err.message);
+    setError('Unable to open the folder: ' + err.message);
   }
 });
 
-// ---------------------------------------------------------------------------
-// الاستماع لأحداث عملية Main
-// ---------------------------------------------------------------------------
+els.openLatestBtn.addEventListener('click', async () => {
+  try {
+    const result = await window.api.openLatestRecording();
+    if (!result || !result.ok) {
+      setError(result && result.error ? result.error : 'No recording available yet.');
+    } else {
+      setStatus('Latest recording opened.');
+    }
+  } catch (err) {
+    setError('Unable to open latest recording: ' + err.message);
+  }
+});
 
 window.api.onStatus((payload) => {
   if (!payload) return;
-
-  // إعلان الرسالة القادمة من الخلفية.
   setStatus(payload.message || '');
 
-  // إظهار رسائل الخطأ في منطقة التنبيه الفوري.
   if (payload.state === 'error') {
-    setError(payload.message || 'حدث خطأ.');
+    setError(payload.message || 'An unexpected error has occurred.');
   } else if (payload.state === 'recorded' || payload.state === 'uploaded') {
     setError('');
   }
 
-  // ضبط حالة الأزرار بناءً على الحالة.
   if (payload.state === 'recording') {
     setButtonsForState('recording');
   } else if (payload.state === 'scheduled' || payload.state === 'waiting' || payload.state === 'joining') {
     setButtonsForState('scheduled');
-  } else if (
-    payload.state === 'stopped' ||
-    payload.state === 'recorded' ||
-    payload.state === 'idle' ||
-    payload.state === 'error'
-  ) {
+  } else if (payload.state === 'stopped' || payload.state === 'recorded' || payload.state === 'idle' || payload.state === 'error') {
     setButtonsForState('idle');
   }
 });
@@ -348,11 +381,8 @@ window.api.onLog((payload) => {
   addLog(payload.message, payload.level || 'info');
 });
 
-// ---------------------------------------------------------------------------
-// التهيئة الأولية
-// ---------------------------------------------------------------------------
 async function initialize() {
-  updateScheduleVisibility();
+  loadSettings();
   setButtonsForState('idle');
 
   try {
@@ -362,21 +392,24 @@ async function initialize() {
       if (config.defaultFolderId) {
         els.driveFolder.value = config.defaultFolderId;
       }
+      if (config.version) {
+        els.version.textContent = `v${config.version}`;
+      }
+      if (config.latestRecordingPath) {
+        renderRecentRecordings([{ name: config.latestRecordingName || 'Latest recording' }]);
+      }
       if (config.driveConnected) {
-        addLog('حساب Google Drive متصل مسبقًا.');
+        addLog('Google Drive already connected.');
       }
       if (!config.credentialsExists) {
-        addLog(
-          'تنبيه: لم يتم العثور على بيانات اعتماد Google. استخدم زر "استيراد ملف بيانات الاعتماد" أو ملف .env.',
-          'warn'
-        );
+        addLog('Warning: Google credentials were not detected. Use the credentials import button or the .env file.', 'warn');
       }
     }
   } catch (err) {
-    addLog('تعذّر تحميل الإعدادات الأولية: ' + err.message, 'error');
+    addLog('Failed to load app settings: ' + err.message, 'error');
   }
 
-  setStatus('جاهز للبدء.');
+  setStatus('Ready.');
 }
 
 initialize();
